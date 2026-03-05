@@ -33,6 +33,12 @@
 // - p5.sound (optional but required for loadSound)
 // - p5play
 
+let backgroundmusic; 
+let Jump;
+let Attack;
+let Damage;
+let Collect;
+
 import { LevelLoader } from "./src/LevelLoader.js";
 import { Game } from "./src/Game.js";
 import { ParallaxBackground } from "./src/ParallaxBackground.js";
@@ -51,7 +57,7 @@ import { LoseScreen } from "./src/ui/LoseScreen.js";
 // Helpers
 // ------------------------------------------------------------
 
-// p5 loadJSON is callback-based. This wrapper lets us use async/await reliably.
+
 function loadJSONAsync(url) {
   return new Promise((resolve, reject) => {
     loadJSON(url, resolve, reject);
@@ -110,9 +116,16 @@ const START_LEVEL_ID = "ex5_level1";
 let bootStarted = false;
 let bootDone = false;
 
-// ------------------------------------------------------------
-// Boot pipeline (async) — runs from setup()
-// ------------------------------------------------------------
+
+
+function preload() {
+  backgroundmusic = loadSound("assets/music.mp3"); 
+
+  Jump = loadSound("assets/jump.mp3");
+  Attack = loadSound("assets/attack.mp3");
+  Damage = loadSound("assets/damage.mp3");
+  Collect = loadSound("assets/collect.mp3");
+}
 
 async function boot() {
   console.log("BOOT: start");
@@ -219,7 +232,7 @@ function initRuntime() {
 function setup() {
   // Create a tiny placeholder canvas immediately so p5 is happy,
   // then pause the loop until our async boot finishes.
-  new Canvas(10, 10, "pixelated");
+  createCanvas(10, 10, "pixelated");
   pixelDensity(1);
   noLoop();
 
@@ -296,14 +309,71 @@ function draw() {
 // Optional input callbacks (audio unlock feels invisible)
 // ------------------------------------------------------------
 
+class PlayerController {
+  jump() {
+    
+    if (Jump) Jump.play(); 
+  }
+
+  attack() {
+    if (Attack) Attack.play(); 
+  }
+
+  takeDamage() {
+   
+    if (Damage) Damage.play(); 
+  }
+
+  collect(item) {
+ 
+    if (Collect) Collect.play();
+  }
+}
+
+function onPlayerJump() {
+  if (Jump) Jump.play();
+}
+
+function onPlayerAttack() {
+  if (Attack) Attack.play();
+}
+
+function onPlayerDamage() {
+  if (Damage) Damage.play();
+}
+
+function onPlayerCollect() {
+  if (Collect) Collect.play();
+}
+
 function mousePressed() {
   unlockAudioOnce();
+
+  if (backgroundmusic && !backgroundmusic.isPlaying()) {
+    backgroundmusic.loop(); 
+  }
 }
 
 function keyPressed(evt) {
   unlockAudioOnce();
+
+  // Start background music
+  if (backgroundmusic && !backgroundmusic.isPlaying()) {
+    backgroundmusic.loop();
+  }
+
+  const player = game.level.playerCtrl; 
+  const key = (evt.key ?? "").toLowerCase();
+
+  if (key === " ") {       
+    player.jump();
+  } else if (key === "a") { 
+    player.attack();
+  }
+
   return preventKeysThatScroll(evt);
 }
+
 
 // Extra safety: prevent scrolling even if p5 doesn’t route a key event you expect.
 window.addEventListener(
@@ -325,3 +395,4 @@ window.setup = setup;
 window.draw = draw;
 window.mousePressed = mousePressed;
 window.keyPressed = keyPressed;
+window.preload = preload; 
