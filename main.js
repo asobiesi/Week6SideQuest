@@ -275,6 +275,7 @@ function draw() {
   cameraController?.applyToP5Camera();
 
   // WORLD draw + HUD composite
+  
   game.draw({
     drawHudFn: () => {
       // camera.off()/on() MUST be paired even if something throws.
